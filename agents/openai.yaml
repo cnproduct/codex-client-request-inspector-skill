@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Request Inspector"
+  short_description: "Safely inspect the current Codex request transport"
+  default_prompt: "Use $codex-client-request-inspector to identify the current Codex model, reasoning effort, transport, and endpoint without exposing credentials."
