@@ -34,7 +34,16 @@ Inspect the installed client read-only and report what is observed, derived, or 
 
    The script selects only allowlisted diagnostic fields and never emits the raw doctor payload.
 4. For an integration or migration request, read [references/supported-integration.md](references/supported-integration.md). Use official documentation to reverify the current model and Responses fields because endpoints and capabilities can change.
-5. Report four separate sections when applicable:
+5. For a client upgrade or regression investigation, read [references/snapshot-comparison.md](references/snapshot-comparison.md), capture one snapshot per version, and compare them:
+
+   ```bash
+   python3 scripts/codex_snapshot.py capture --output codex-snapshot-before.json
+   python3 scripts/codex_snapshot.py capture --doctor --output codex-snapshot-after.json
+   python3 scripts/codex_snapshot.py compare codex-snapshot-before.json codex-snapshot-after.json --format markdown --output codex-diff.md
+   ```
+
+   Do not commit generated snapshots or reports. Treat a difference as version-specific evidence, not proof of an exact request body or a supported private API.
+6. Report four separate sections when applicable:
 
    - installed client and configuration;
    - live transport evidence;
@@ -48,4 +57,5 @@ Inspect the installed client read-only and report what is observed, derived, or 
 - State whether transport evidence is passive or from an active handshake.
 - Redact all account identifiers and credentials.
 - Mark exact request bodies as schemas or informed reconstructions unless a safe official trace supplied them.
+- For version comparisons, exclude timestamps from change detection and retain only the documented snapshot allowlist.
 - Cite official OpenAI documentation for supported public integration claims.

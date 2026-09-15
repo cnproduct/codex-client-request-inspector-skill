@@ -1,5 +1,8 @@
 __pycache__/
 *.pyc
 inspection-report*.json
+codex-snapshot*.json
+codex-diff*.json
+codex-diff*.md
 dist/
 .DS_Store

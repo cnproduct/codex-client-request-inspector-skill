@@ -16,6 +16,18 @@ Run the optional allowlisted network diagnostic:
 python3 scripts/inspect_codex.py --doctor --json
 ```
 
+## Capture and compare versions
+
+Save a portable snapshot before and after a Codex upgrade:
+
+```bash
+python3 scripts/codex_snapshot.py capture --output codex-snapshot-before.json
+python3 scripts/codex_snapshot.py capture --doctor --output codex-snapshot-after.json
+python3 scripts/codex_snapshot.py compare codex-snapshot-before.json codex-snapshot-after.json --format markdown --output codex-diff.md
+```
+
+Snapshots and diff reports omit credentials, account identifiers, raw diagnostics, and local paths. See [the snapshot comparison guide](references/snapshot-comparison.md) for the stored allowlist and CI exit codes.
+
 See [SKILL.md](SKILL.md) for the complete workflow and evidence rules.
 
 ## Validate the package

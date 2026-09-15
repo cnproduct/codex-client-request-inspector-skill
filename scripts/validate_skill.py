@@ -48,7 +48,9 @@ def validate() -> None:
     required = (
         ROOT / "agents" / "openai.yaml",
         ROOT / "scripts" / "inspect_codex.py",
+        ROOT / "scripts" / "codex_snapshot.py",
         ROOT / "references" / "evidence-grading.md",
+        ROOT / "references" / "snapshot-comparison.md",
         ROOT / "references" / "supported-integration.md",
     )
     missing = [str(path.relative_to(ROOT)) for path in required if not path.is_file()]

@@ -13,6 +13,7 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit, urlunsplit
 
 
 SAFE_CONFIG_KEYS = (
@@ -106,7 +107,7 @@ def load_safe_config() -> dict[str, Any]:
                     continue
                 parsed_line = tomllib.loads(line)
                 key = match.group(1)
-                values[key] = parsed_line[key]
+                values[key] = sanitize_allowlisted_value(parsed_line[key])
         result["values"] = values
         result["status"] = "emitted_allowlisted_keys_only"
     except Exception as exc:
@@ -116,9 +117,45 @@ def load_safe_config() -> dict[str, Any]:
 
 def sanitize_login_status(value: str) -> str:
     first_line = value.splitlines()[0] if value else "unavailable"
-    first_line = re.sub(r"[\w.+-]+@[\w.-]+", "<redacted-email>", first_line)
-    first_line = re.sub(r"(?i)(bearer\s+)[^\s]+", r"\1<redacted>", first_line)
-    return first_line[:240]
+    return sanitize_text(first_line)
+
+
+def sanitize_text(value: str) -> str:
+    value = re.sub(r"[\w.+-]+@[\w.-]+", "<redacted-email>", value)
+    value = re.sub(r"(?i)(bearer\s+)[^\s]+", r"\1<redacted>", value)
+    value = re.sub(r"\b(?:sk|gh[opsu]|xox[baprs])-[_A-Za-z0-9-]{16,}\b", "<redacted-token>", value)
+    return value.replace("\r", " ").replace("\n", " ")[:240]
+
+
+def sanitize_allowlisted_value(value: Any) -> str | int | float | bool | None:
+    if value is None or isinstance(value, (int, float, bool)):
+        return value
+    if isinstance(value, str):
+        return sanitize_text(value)
+    return "<unsupported-value>"
+
+
+def sanitize_endpoint(value: Any) -> str:
+    """Keep an endpoint useful for comparison without query, fragment, or userinfo."""
+    if not isinstance(value, str):
+        return "<redacted-endpoint>"
+    try:
+        parsed = urlsplit(value)
+    except ValueError:
+        return "<redacted-endpoint>"
+    if parsed.scheme not in {"http", "https", "ws", "wss"} or not parsed.hostname:
+        return "<redacted-endpoint>"
+    try:
+        host = parsed.hostname
+        port = parsed.port
+    except ValueError:
+        return "<redacted-endpoint>"
+    if not host:
+        return "<redacted-endpoint>"
+    if ":" in host and not host.startswith("["):
+        host = f"[{host}]"
+    netloc = host + (f":{port}" if port else "")
+    return urlunsplit((parsed.scheme, netloc, parsed.path, "", ""))[:500]
 
 
 def scan_binary(binary: Path) -> dict[str, Any]:
@@ -159,7 +196,13 @@ def safe_doctor(codex: Path) -> dict[str, Any]:
         return {"status": "invalid_json", "exit_code": code}
 
     selected = {name: nested_value(payload, path) for name, path in DOCTOR_FIELDS.items()}
-    selected = {name: value for name, value in selected.items() if value is not None}
+    selected = {
+        name: sanitize_allowlisted_value(value)
+        for name, value in selected.items()
+        if value is not None
+    }
+    if "endpoint" in selected:
+        selected["endpoint"] = sanitize_endpoint(selected["endpoint"])
     return {
         "status": "active_allowlisted_diagnostics",
         "exit_code": code,

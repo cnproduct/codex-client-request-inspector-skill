@@ -122,6 +122,18 @@ class DoctorFilteringTests(unittest.TestCase):
         self.assertNotIn("must-not-escape", serialized)
         self.assertNotIn("authorization", serialized)
 
+    def test_endpoint_sanitizer_fails_closed_on_an_invalid_port(self) -> None:
+        self.assertEqual(
+            inspect_codex.sanitize_endpoint("https://example.invalid:not-a-port/responses"),
+            "<redacted-endpoint>",
+        )
+
+    def test_allowlisted_container_value_fails_closed(self) -> None:
+        self.assertEqual(
+            inspect_codex.sanitize_allowlisted_value({"nested": "do-not-emit"}),
+            "<unsupported-value>",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
