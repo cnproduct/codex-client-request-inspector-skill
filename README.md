@@ -17,3 +17,13 @@ python3 scripts/inspect_codex.py --doctor --json
 ```
 
 See [SKILL.md](SKILL.md) for the complete workflow and evidence rules.
+
+## Validate the package
+
+```bash
+python3 scripts/validate_skill.py
+python3 scripts/scan_sensitive.py
+python3 -m unittest discover -s tests -v
+```
+
+GitHub Actions runs the same gates on macOS, Windows, and Linux. Version tags publish a platform-neutral ZIP and TAR.GZ with SHA-256 checksums.
