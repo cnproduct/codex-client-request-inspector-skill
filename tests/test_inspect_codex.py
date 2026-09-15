@@ -48,13 +48,13 @@ class SimulatedInstallationTests(unittest.TestCase):
             {"source": "ChatGPT.app bundled", "path": "/mock/app/codex"},
         ]
         selected, reason = inspect_codex.select_codex(None, discovered)
-        self.assertEqual(str(selected), "/mock/app/codex")
+        self.assertEqual(selected.parts[-3:], ("mock", "app", "codex"))
         self.assertIn("desktop", reason)
 
     def test_linux_path_install_is_the_fallback(self) -> None:
         discovered = [{"source": "PATH", "path": "/usr/local/bin/codex"}]
         selected, reason = inspect_codex.select_codex(None, discovered)
-        self.assertEqual(str(selected), "/usr/local/bin/codex")
+        self.assertEqual(selected.parts[-4:], ("usr", "local", "bin", "codex"))
         self.assertEqual(reason, "PATH fallback")
 
     def test_windows_explicit_executable_is_selected(self) -> None:
